@@ -1,7 +1,7 @@
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 html, body {
@@ -11,14 +11,12 @@ html, body {
   background: #70c5ce;
 }
 
-#gameCanvas {
+canvas {
   display: block;
-  width: 100vw;
-  height: 100vh;
 }
 
 #restartBtn {
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -26,20 +24,4 @@ html, body {
   font-size: 18px;
   cursor: pointer;
   display: none;
-  z-index: 10;
-}
-
-#gameoverVideo {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 9;
-}
-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1;
 }

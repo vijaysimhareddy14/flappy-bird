@@ -1,74 +1,42 @@
 const canvas = document.getElementById("gameCanvas");
-if (!canvas) {
-  console.error("Canvas not found");
-}
 const ctx = canvas.getContext("2d");
+const restartBtn = document.getElementById("restartBtn");
 
-let W, H;
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  W = canvas.width;
-  H = canvas.height;
 }
 resize();
 window.addEventListener("resize", resize);
 
-// Assets
 const birdImg = new Image();
 birdImg.src = "./bird.png";
 
 const pipeImg = new Image();
 pipeImg.src = "./pipe.png";
 
-const jumpAudio = new Audio("./jump.m4a");
-const gameoverAudio = new Audio("./gameover.m4a");
+let bird, pipes, score, running;
 
-const restartBtn = document.getElementById("restartBtn");
-const gameoverVideo = document.getElementById("gameoverVideo");
+function reset() {
+  bird = {
+    x: 80,
+    y: canvas.height / 2,
+    w: 40,
+    h: 30,
+    vy: 0
+  };
 
-// Game state
-let running = true;
-let frames = 0;
-let score = 0;
-let best = 0;
+  pipes = [];
+  score = 0;
+  running = true;
+  restartBtn.style.display = "none";
+}
 
-const bird = {
-  x: 80,
-  y: H / 2,
-  w: 48,
-  h: 36,
-  vy: 0,
-  gravity: 0.6,
-  jump: -10,
-  update() {
-    this.vy += this.gravity;
-    this.y += this.vy;
-
-    if (this.y + this.h > H) gameOver();
-    if (this.y < 0) this.y = 0;
-  },
-  flap() {
-    this.vy = this.jump;
-    jumpAudio.currentTime = 0;
-    jumpAudio.play().catch(() => {});
-  },
-  draw() {
-    if (birdImg.complete) {
-      ctx.drawImage(birdImg, this.x, this.y, this.w, this.h);
-    } else {
-      ctx.fillStyle = "yellow";
-      ctx.fillRect(this.x, this.y, this.w, this.h);
-    }
-  }
-};
-
-const pipes = [];
 function addPipe() {
-  const gap = 140;
-  const top = Math.random() * (H - gap - 200) + 100;
+  const gap = 160;
+  const top = Math.random() * (canvas.height - gap - 100) + 50;
   pipes.push({
-    x: W,
+    x: canvas.width,
     top,
     bottom: top + gap,
     w: 70,
@@ -76,50 +44,23 @@ function addPipe() {
   });
 }
 
-function reset() {
-  pipes.length = 0;
-  frames = 0;
-  score = 0;
-  bird.y = H / 2;
-  bird.vy = 0;
-  addPipe();
-}
-
-function gameOver() {
-  running = false;
-  best = Math.max(best, score);
-
-  gameoverVideo.style.display = "block";
-  gameoverVideo.currentTime = 0;
-  gameoverVideo.play().catch(() => {});
-
-  gameoverAudio.currentTime = 0;
-  gameoverAudio.play().catch(() => {});
-
-  restartBtn.style.display = "block";
-}
-
-restartBtn.onclick = () => {
-  gameoverVideo.pause();
-  gameoverVideo.style.display = "none";
-  restartBtn.style.display = "none";
-  running = true;
-  reset();
-};
-
 function update() {
   if (!running) return;
 
-  frames++;
-  bird.update();
+  bird.vy += 0.5;
+  bird.y += bird.vy;
 
-  if (frames % 90 === 0) addPipe();
+  if (bird.y + bird.h > canvas.height || bird.y < 0) {
+    gameOver();
+  }
 
-  for (let i = pipes.length - 1; i >= 0; i--) {
-    const p = pipes[i];
-    p.x -= 2.5;
+  if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 300) {
+    addPipe();
+  }
 
-    // Collision
+  pipes.forEach(p => {
+    p.x -= 2;
+
     if (
       bird.x < p.x + p.w &&
       bird.x + bird.w > p.x &&
@@ -132,33 +73,25 @@ function update() {
       p.passed = true;
       score++;
     }
+  });
 
-    if (p.x + p.w < 0) pipes.splice(i, 1);
-  }
+  pipes = pipes.filter(p => p.x + p.w > 0);
 }
 
 function draw() {
   ctx.fillStyle = "#70c5ce";
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   pipes.forEach(p => {
     ctx.drawImage(pipeImg, p.x, 0, p.w, p.top);
-    ctx.drawImage(pipeImg, p.x, p.bottom, p.w, H - p.bottom);
+    ctx.drawImage(pipeImg, p.x, p.bottom, p.w, canvas.height - p.bottom);
   });
 
-  bird.draw();
+  ctx.drawImage(birdImg, bird.x, bird.y, bird.w, bird.h);
 
   ctx.fillStyle = "#fff";
-  ctx.font = "28px sans-serif";
-  ctx.fillText(score, W - 60, 40);
-
-  if (!running) {
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "#fff";
-    ctx.fillText("Game Over", W / 2 - 70, H / 2 - 20);
-    ctx.fillText("Best: " + best, W / 2 - 55, H / 2 + 20);
-  }
+  ctx.font = "32px Arial";
+  ctx.fillText(score, canvas.width / 2, 60);
 }
 
 function loop() {
@@ -167,17 +100,19 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
+function gameOver() {
+  running = false;
+  restartBtn.style.display = "block";
+}
+
 canvas.addEventListener("click", () => {
-  if (!running) return;
-  bird.flap();
+  if (!running) {
+    reset();
+  }
+  bird.vy = -9;
 });
 
-window.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    e.preventDefault();
-    bird.flap();
-  }
-});
+restartBtn.addEventListener("click", reset);
 
 reset();
 loop();
