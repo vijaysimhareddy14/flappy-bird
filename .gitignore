@@ -1,0 +1,24 @@
+.vercel
+# macOS
+.DS_Store
+
+# Node / tooling (safe to ignore even if unused)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel/
+
+# Editor settings
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
