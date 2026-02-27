@@ -37,3 +37,9 @@ html, body {
   object-fit: cover;
   z-index: 9;
 }
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}

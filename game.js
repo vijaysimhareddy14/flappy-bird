@@ -1,4 +1,7 @@
 const canvas = document.getElementById("gameCanvas");
+if (!canvas) {
+  console.error("Canvas not found");
+}
 const ctx = canvas.getContext("2d");
 
 let W, H;
