@@ -91,7 +91,7 @@ function draw() {
 
   ctx.fillStyle = "#fff";
   ctx.font = "32px Arial";
-  ctx.fillText(score, canvas.width / 2, 60);
+  ctx.fillText(score, canvas.width / 2 - 10, 60);
 }
 
 function loop() {
@@ -108,6 +108,7 @@ function gameOver() {
 canvas.addEventListener("click", () => {
   if (!running) {
     reset();
+    return;
   }
   bird.vy = -9;
 });
